@@ -1,49 +1,27 @@
 <?php
+
 /*
-В этом файле опишем класс Route,
-который будет запускать методы контроллеров,
-которые в свою очередь будут генерировать вид страниц.
-
-В элементе глобального массива $_SERVER['REQUEST_URI'] содержится полный адрес по которому обратился пользователь.
-Например: example.ru/contacts/feedbackС помощью функции explode производится разделение адреса на составлющие.
-В результате мы получаем имя контроллера, для приведенного примера, это контроллер contacts и имя действия,
-в нашем случае — feedback.
-Далее подключается файл модели (модель может отсутствовать) и файл контроллера,
-если таковые имеются и наконец, создается экземпляр контроллера и вызывается действие,
-опять же, если оно было описано в классе контроллера.
-
-Таким образом, при переходе, к примеру, по адресу:
-example.com/portfolio
-или
-example.com/portfolio/index
-роутер выполнит следующие действия:
-
-    подключит файл model_portfolio.php из папки models, содержащий класс Model_Portfolio;
-    подключит файл controller_portfolio.php из папки controllers, содержащий класс Controller_Portfolio;
-    создаст экземпляр класса Controller_Portfolio и вызовет действие по умолчанию — action_index, описанное в нем.
-
-Если пользователь попытается обратиться по адресу несуществующего контроллера, к примеру:
-example.com/ufo
-то его перебросит на страницу «404»:
-example.com/404
-То же самое произойдет если пользователь обратится к действию, которое не описано в контроллере.
+Класс-маршрутизатор для определения запрашиваемой страницы.
+> цепляет классы контроллеров и моделей;
+> создает экземпляры контролеров страниц и вызывает действия этих контроллеров.
 */
 class Route
 {
+
 	static function start()
 	{
 		// контроллер и действие по умолчанию
 		$controller_name = 'Main';
 		$action_name = 'index';
-
+		
 		$routes = explode('/', $_SERVER['REQUEST_URI']);
 
 		// получаем имя контроллера
 		if ( !empty($routes[1]) )
-		{
+		{	
 			$controller_name = $routes[1];
 		}
-
+		
 		// получаем имя экшена
 		if ( !empty($routes[2]) )
 		{
@@ -55,7 +33,14 @@ class Route
 		$controller_name = 'Controller_'.$controller_name;
 		$action_name = 'action_'.$action_name;
 
+		/*
+		echo "Model: $model_name <br>";
+		echo "Controller: $controller_name <br>";
+		echo "Action: $action_name <br>";
+		*/
+
 		// подцепляем файл с классом модели (файла модели может и не быть)
+
 		$model_file = strtolower($model_name).'.php';
 		$model_path = "application/models/".$model_file;
 		if(file_exists($model_path))
@@ -78,11 +63,11 @@ class Route
 			*/
 			Route::ErrorPage404();
 		}
-
+		
 		// создаем контроллер
 		$controller = new $controller_name;
 		$action = $action_name;
-
+		
 		if(method_exists($controller, $action))
 		{
 			// вызываем действие контроллера
@@ -93,39 +78,15 @@ class Route
 			// здесь также разумнее было бы кинуть исключение
 			Route::ErrorPage404();
 		}
-
+	
 	}
 
 	function ErrorPage404()
 	{
-    $host = 'http://'.$_SERVER['HTTP_HOST'].'/';
-    header('HTTP/1.1 404 Not Found');
+        $host = 'http://'.$_SERVER['HTTP_HOST'].'/';
+        header('HTTP/1.1 404 Not Found');
 		header("Status: 404 Not Found");
 		header('Location:'.$host.'404');
     }
+    
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
- ?>
